@@ -1,0 +1,25 @@
+version: '3'
+
+services:
+  nginx:
+    build:
+      dockerfile: ./Dockerfile_nginx
+    volumes:
+      - /var/www/recordings:/var/www/recordings
+    ports:
+      - "80:80"
+      - "443:443"
+  web:
+    build: .
+#    command: python /code/manage.py runserver 0.0.0.0:8000
+    command: bash -c 'rm -rf /var/www/recordings/static && django-admin collectstatic && gunicorn --bind=0.0.0.0 --workers=2 --threads=4 transhelp.wsgi'
+    environment:
+      - PYTHONPATH=/code
+      - DJANGO_SETTINGS_MODULE=transhelp.settings
+    working_dir: /code
+    volumes:
+      - /var/www/recordings:/var/www/recordings
+    ports:
+      - "8000:8000"
+    depends_on:
+      - nginx

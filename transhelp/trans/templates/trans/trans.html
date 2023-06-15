@@ -1,0 +1,205 @@
+{% extends 'trans/base.html' %}
+
+{% block content %}
+
+    {% load static %}
+    <script src="{% static 'trans/audio.js' %}"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
+
+    <div id="error-box" class="main-error-box">
+    {% if error_message %}
+        {{ error_message }}
+    {% endif %}
+    </div>
+
+    <audio id="audio-box" controls>
+        <source src="{{audio_url}}" type="audio/mpeg">
+    Your browser does not support the audio element.
+    </audio>
+    <br/>
+    <br/>
+
+<script>
+    
+    $(document).ready(function() {
+        lastSwitchSeconds = 0;
+        maxPlaySeconds = 5;
+        currLineId = 0;
+        lineSecondEnds = {{ line_second_ends }};
+        document.addEventListener('keydown', keyHandler);
+        var audioEl = $("#audio-box")[0];
+        audioEl.ontimeupdate = function() {
+            var lineId = getLinePos(lineSecondEnds, audioEl.currentTime);
+            var lineIdFaster = getLinePosFaster(lineSecondEnds, audioEl.currentTime)
+
+            if (lineId != lineIdFaster) {
+                console.log(`getLinePos ${lineId} result neq with getLinePosFaster ${lineIdFaster}`);
+            }
+
+            if (lineId != currLineId) {
+                $("#play-" + currLineId)[0].setAttribute("class", "btn btn-primary");
+                $("#play-" + lineId)[0].setAttribute("class", "btn btn-danger");
+                currLineId = lineId;
+                // conditioning is necessary to keep playing when user clicks button for certain part
+                if (Math.abs(lastSwitchSeconds - audioEl.currentTime) > 0.2) {
+                    audioEl.pause();
+                }
+                lastSwitchSeconds = audioEl.currentTime;
+            } else if (lastSwitchSeconds + maxPlaySeconds < audioEl.currentTime) {
+                audioEl.pause();
+                lastSwitchSeconds = audioEl.currentTime;
+            }
+        };
+    });
+
+    function keyHandler(e) {
+        var audioElement = $("#audio-box")[0];
+
+        // space is bad because of default audio element events that cannot be stopped easily
+        //if (e.ctrlKey && e.shiftKey && e.keyCode == 32) {
+
+        // ArrowUp
+        if (e.ctrlKey && e.shiftKey && e.keyCode == 38) {
+            e.preventDefault();
+            if (audioElement.paused) {
+                audioElement.play();
+            } else {
+                audioElement.pause();
+            }
+        }
+        // F button
+        else if (e.ctrlKey && e.shiftKey && e.keyCode == 70) {
+            var newTime = audioElement.currentTime - maxPlaySeconds;
+            audioElement.currentTime = newTime;
+            lastSwitchSeconds = newTime;
+            audioElement.play();
+        }
+        // current with ArrowDown
+        else if (e.ctrlKey && e.shiftKey && e.keyCode == 40) {
+            e.preventDefault();
+            var startSeconds = 0;
+            if (currLineId > 0) {
+                startSeconds = lineSecondEnds[currLineId - 1];
+            }
+            $("#audio-box")[0].currentTime = startSeconds;
+            lastSwitchSeconds = startSeconds;
+            $("#audio-box")[0].play();
+        }
+        // previous with ArrowLeft
+        else if (e.ctrlKey && e.shiftKey && e.keyCode == 37) {
+            e.preventDefault();
+            var startSeconds = 0;
+            if (currLineId > 1) {
+                startSeconds = lineSecondEnds[currLineId - 2];
+            }
+            $("#audio-box")[0].currentTime = startSeconds;
+            lastSwitchSeconds = startSeconds;
+            $("#audio-box")[0].play();
+        }
+        // next with ArrowRight
+        else if (e.ctrlKey && e.shiftKey && e.keyCode == 39) {
+            e.preventDefault();
+            var startSeconds = lineSecondEnds[lineSecondEnds.length - 1];
+            if (currLineId < lineSecondEnds.length - 1) {
+                startSeconds = lineSecondEnds[currLineId];
+            }
+            $("#audio-box")[0].currentTime = startSeconds;
+            lastSwitchSeconds = startSeconds;
+            $("#audio-box")[0].play();
+        }
+    }
+
+
+    function playHandler(jumpSeconds) {
+        $("#audio-box")[0].currentTime = jumpSeconds;
+        lastSwitchSeconds = jumpSeconds;
+        $("#audio-box")[0].play();
+    }
+
+    function getLinePos(lineSecondEnds, curr_time_seconds) {
+        for (i = 0; i < lineSecondEnds.length; i++) {
+            if (curr_time_seconds + 0.2 < lineSecondEnds[i]) {
+                return Math.min(lineSecondEnds.length - 1, i);
+            }
+        }
+        return lineSecondEnds.length - 1;
+    }
+
+    function setStopSeconds() {
+        var userStopSeconds = $("#stopSecondsNumber").val();
+        maxPlaySeconds = Math.max(userStopSeconds, 1);
+    }
+
+    function setPlaybackRate() {
+        var userPlaybackRate = $("#playbackRate").val();
+        $("#audio-box").get(0).playbackRate = userPlaybackRate;
+    }
+
+    function getLinePosFaster(lineSecondEnds, currTimeSeconds) {
+        return Math.min(lineSecondEnds.length - 1, bisectRight(lineSecondEnds, currTimeSeconds + 0.2));
+    }
+
+    //https://github.com/python/cpython/blob/master/Lib/bisect.py
+    function bisectRight(array, element) {
+        var lo = 0;
+        var hi = array.length;
+        while (lo < hi) {
+            var mid = Math.floor((lo + hi) / 2);
+            if (element < array[mid]) {
+                hi = mid;
+            } else {
+                lo = mid + 1;
+            }
+        }
+        return lo;
+    }
+
+</script>
+
+    <div class="main-box">
+        <form class="needs-validation" method="post" enctype="multipart/form-data" novalidate>
+        {% csrf_token %}
+            <div class="form-inline">
+                <button class="btn btn-primary head-control">Save</button>
+                <a href="{% url 'get-trans-text' rec_info_id %}" download><button class="btn btn-primary head-control" type="button">Download trans</button></a>
+                <button class="btn btn-primary head-control" type="button" onclick="setStopSeconds()">Set stop seconds</button>
+                <input class="form-control head-control" type="number" id="stopSecondsNumber" name="stopSecondsNumber" step="1" min="1" max="30" value="5"/>
+                <button class="btn btn-primary head-control" type="button" onclick="setPlaybackRate()">Set playback rate</button>
+                <input class="form-control head-control" type="number" id="playbackRate" name="playbackRate" step="0.1" min="0.5" max="2" value="1"/>
+            </div>
+            <br/>
+            <div id="lines-box">
+                {% for line in lines %}
+                    <div class="form-group row">
+                        <label for="line-trans-{{ line.line_id }}" class="col-sm-2 col-form-label"><button id="play-{{ line.line_id }}" type="button" class="btn btn-primary" onclick="playHandler({{line.start_sec}})">{{line.line_id}} {{line.human_timestamp}}</button></label>
+                        <div class="col-sm-6 col-md-8">
+                            <textarea id="line-trans-{{ line.line_id }}" class="form-control" name="line-trans-{{ line.line_id }}">{{ line.trans }}</textarea>
+                        </div>
+                    </div>
+                {% endfor %}
+            
+            </div>
+        </form>
+    </div>
+
+    <style>
+        .main-box {
+            width: 1000px;
+            margin: auto;
+        }
+        .head-control {
+            margin:5px;
+        }
+        #audio-box {
+            width: 100%;
+        }
+        #lines-box {
+            overflow-y: scroll;
+            height: 350px;
+            overflow-x: hidden;
+        }
+    </style>
+
+{% endblock %}

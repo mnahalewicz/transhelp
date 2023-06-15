@@ -1,0 +1,76 @@
+{% extends "trans/base.html" %}
+
+{% block content %}
+    
+    <div class="main-box">
+        <form class="needs-validation" method="post" novalidate>
+        {% csrf_token %}
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input type="text" pattern="[a-zA-Z0-9_\-]{3,}" class="form-control" id="username" name="username" placeholder="Username" oninput="checkIfUserExists()" required>
+                <div id="username-invalid-feedback" class="invalid-feedback"/>
+            </div>
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" pattern="[a-zA-Z0-9_\-]{6,}" class="form-control" id="password" name="password" placeholder="Password" required>
+                <div class="invalid-feedback">
+                    password has to contain at least 6 charcters that are letters, digits, under score _ or minus -
+                </div>
+            </div>
+            <button type="submit" class="btn btn-primary">Create account</button>
+        </form>
+    </div>
+
+    <script>
+    // starter JavaScript for disabling form submissions if there are invalid fields
+    (function() {
+        'use strict';
+        window.addEventListener('load', function() {
+            // Fetch all the forms we want to apply custom Bootstrap validation styles to
+            var forms = document.getElementsByClassName('needs-validation');
+            // Loop over them and prevent submission
+            var validation = Array.prototype.filter.call(forms, function(form) {
+                form.addEventListener('submit', function(event) {
+                    if (form.checkValidity() === false) {
+                        event.preventDefault();
+                        event.stopPropagation();
+                    }
+                    form.classList.add('was-validated');
+                }, false);
+            });
+        }, false);
+    })();
+
+    function checkIfUserExists() {
+        var defaultMessage = "username has to contain at least 3 charcters that are letters, digits, under score _ or minus -";
+        var invalidFeedbackElement = $("#username-invalid-feedback");
+        invalidFeedbackElement.html(defaultMessage);
+        var inputElement = $("#username")[0];
+        var inputValue = inputElement.value;
+        if (inputValue === "") {
+            return;
+        }
+        $.get("{% url 'check-register-login' %}", { "username" : inputValue }, function(data, status){
+            if ("exists" in data && data["exists"] === true) {
+                var userExistsMessage = `user with name ${inputValue} exists`;
+                inputElement.setCustomValidity(userExistsMessage);
+                invalidFeedbackElement.html(userExistsMessage);
+            } else {
+                inputElement.setCustomValidity("");
+            }
+        });
+    }
+
+    $(document).ready(function() {
+        checkIfUserExists();
+    });
+    </script>
+
+    <style>
+        .main-box {
+            width: 500px;
+            margin: auto;
+        }
+    </style>
+
+{% endblock %}

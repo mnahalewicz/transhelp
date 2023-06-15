@@ -1,0 +1,50 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>{% block title %}TransHelp{% endblock %}</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+    <script src='https://cdn.plot.ly/plotly-latest.min.js'></script>
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js" crossorigin="anonymous"></script>
+
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'chart/style.css' %}">
+
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <a class="navbar-brand" href="{% url 'list-rec' %}">TransHelp</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'list-rec' %}">Recordings</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'add-rec' %}">Add recording</a>
+                </li>
+                {% if perms.trans.add_registrationoffer %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'reg-invitation' %}">Registration invitation</a>
+                    </li>
+                {% endif %}
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'logout' %}">Log out</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+    <br/>
+    {% block content %}{% endblock %}
+
+</body>
+</html>
+
+<style>
+    .main-error-box {
+        color: red;
+    }
+</style>

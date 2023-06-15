@@ -1,0 +1,20 @@
+#plot-box {
+    margin: auto;
+    width: 500px;
+}
+
+#form-box {
+    height: 200px;
+    width: 50%;
+    margin: auto;
+}
+
+.sigma-div {
+    margin: auto;
+    text-align: center;
+    background-color: orange;
+}
+
+.main-error-box {
+    color: red;
+}
