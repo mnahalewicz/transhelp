@@ -35,7 +35,8 @@ def trans(request, rec_info_id):
     for line in sorted_lines:
         line_second_ends.append(line["end_sec"])
         line["human_timestamp"] = time.strftime("%H:%M:%S", time.gmtime(line["start_sec"]))
-    audio_url = "http://" + get_host(request, settings.REC_PORT) + f"/{rec_info.name}"
+    media_url_part = media if (media := settings.MEDIA_URL) else "/"
+    audio_url = "http://" + get_host(request, settings.REC_PORT) + f"{media_url_part}{rec_info.name}"
     return render(request, 'trans/trans.html', {"lines" : sorted_lines, "line_second_ends" : line_second_ends, "audio_url" : audio_url, "rec_info_id" : rec_info_id })
 
 
