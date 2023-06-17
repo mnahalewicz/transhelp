@@ -1,6 +1,6 @@
 FROM python:3.8.10
 ENV PYTHONUNBUFFERED 1
-RUN apt-get update && apt-get install -y sox libsox-fmt-mp3 nginx
+RUN apt-get update && apt-get install -y sox libsox-fmt-mp3
 RUN mkdir /code
 WORKDIR /code
 COPY requirements.txt /code/
