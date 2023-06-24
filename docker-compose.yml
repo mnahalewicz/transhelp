@@ -11,6 +11,7 @@ services:
       - "443:443"
   web:
     build: .
+# python manage.py collectstatic
     command: bash -c 'rm -rf /var/www/recordings/static && django-admin collectstatic && gunicorn --bind=0.0.0.0 --workers=2 --threads=4 transhelp.wsgi'
     environment:
       - PYTHONPATH=/code

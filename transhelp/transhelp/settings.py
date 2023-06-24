@@ -103,6 +103,11 @@ SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 #SESSION_COOKIE_HTTPONLY = False
 REC_ROOT_DP = "/var/www/recordings"
 REC_PORT = 80
+
+#REC_PORT = 8000
+#MEDIA_ROOT = REC_ROOT_DP
+#MEDIA_URL = "/media/"
+
 DATA_UPLOAD_MAX_NUMBER_FIELDS = 3000
 
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
@@ -127,6 +132,11 @@ USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.0/howto/static-files/
-
 STATIC_URL = "http://localhost/static/"
+#STATIC_URL = "/static/"
 STATIC_ROOT = "/var/www/recordings/static/"
+
+# Default primary key field type
+# https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
+
+DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
